@@ -119,3 +119,31 @@ describe('When tuning in, then out, and ordering a command', function() {
     expect(this.consoleSpy).to.not.have.been.called;
   });
 });
+
+describe('When providing a custom logging function and tuning it', function() {
+  beforeEach(function() {
+    this.cachedLog = Backbone.Radio.log;
+    Backbone.Radio.log = function(channelName) {
+      console.log('Custom log: ' + channelName);
+    };
+
+    this.channelName = 'foobar';
+    this.eventName = 'foo:command';
+    this.consoleSpy = this.sinon.stub(console, 'log');
+    this.channel = Backbone.Radio.channel(this.channelName);
+
+    Backbone.Radio.tuneIn(this.channelName);
+    this.channel.command(this.commandName, 'foo', 'bar');
+  });
+
+  afterEach(function() {
+    Backbone.Radio.tuneOut(this.channelName);
+    Backbone.Radio.log = this.cachedLog;
+  });
+
+  it('should log your custom message', function() {
+    var warning = 'Custom log: ' + this.channelName;
+    expect(this.consoleSpy).to.have.been.calledOnce;
+    expect(this.consoleSpy).to.have.been.calledWithExactly(warning);
+  });
+});
